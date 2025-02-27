@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Brunette - Resumen de Caja{% endblock %}
+
+{% block content %}
+
+<body>
+    <div class="container">
+        <h1>Resumen de Caja #{{ caja.id_caja }}</h1>
+        
+        <!-- Detalles de la Caja -->
+        <div class="caja-info">
+            <p><strong>Empleado:</strong> {{ caja.id_empl.nombre_empl }} {{ caja.id_empl.apellido_empl }}</p>
+            <p><strong>Fecha Apertura:</strong> {{ caja.fecha_hs_aper_caja }}</p>
+            <p><strong>Fecha Cierre:</strong> {{ caja.fecha_hs_cier_caja }}</p>
+            <p><strong>Monto Inicial:</strong> ${{ caja.monto_inicial_caja }}</p>
+            <p><strong>Total Ingresos:</strong> ${{ caja.total_ingresos_caja }}</p>
+            <p><strong>Total Egresos:</strong> ${{ caja.total_egresos_caja }}</p>
+            <p><strong>Saldo Final:</strong> ${{ caja.saldo_caja }}</p>
+        </div>
+
+        <!-- Listado de Ventas -->
+        <h3>Ventas Registradas ({{ ventas|length }})</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td>{{ venta.fecha_venta }} {{ venta.hora_venta }}</td>
+                    <td>{{ venta.id_cli.nombre }}</td>
+                    <td>${{ venta.total_venta }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Listado de Compras -->
+        <h3>Compras Registradas ({{ compras|length }})</h3>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Fecha/Hora</th>
+                    <th>Proveedor</th>
+                    <th>Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for compra in compras %}
+                <tr>
+                    <td>{{ compra.fecha_hora_comp }}</td>
+                    <td>{{ compra.id_prov.nombre }}</td>
+                    <td>${{ compra.monto_comp }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <a href="{% url 'Pag-Principal' %}" class="btn btn-primary">Menú Principal</a>
+        <a href="{% url 'menu_caja' %}" class="btn btn-primary">Gestión de Cajas</a>
+    </div>
+</body>
+</html>
+
+{% endblock %}

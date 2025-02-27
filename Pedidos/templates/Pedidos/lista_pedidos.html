@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        Pedido: Id: {{ pedido.id }} &nbsp;&nbsp;&nbsp; Mesa: 
+        <select class="form-select d-inline-block w-auto ms-2">
+            {% for mesa in mesas %}
+                <option value="{{ mesa.id }}" {% if mesa.id == pedido.mesa.id %}selected{% endif %}>
+                    Mesa {{ mesa.id }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="card-body">
+        <!-- Botón para agregar producto -->
+        <button id="agregarProducto" class="btn btn-primary mb-3">
+            Agregar Producto
+        </button>
+
+        <!-- Tabla de productos -->
+        <table class="table" id="tablaProductos">
+            <thead>
+                <tr>
+                    <th>Productos</th>
+                    <th>Precio</th>
+                    <th>Cantidad</th>
+                    <th>Acciones
+                    </th>
+                  
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Fila inicial (puede estar vacía o tener datos precargados) -->
+                <tr>
+                    <td><input type="text" class="form-control" placeholder="Producto" value=""></td>
+                    <td><input type="number" class="form-control precio" placeholder="Precio" value=""></td>
+                    <td><input type="number" class="form-control cantidad" placeholder="Cantidad" value="" min="1"></td>
+                  
+                    <td>
+                        <a name="bteditar" id="bteditar" href="#" class="btn btn-sm btn-warning">Editar</a>
+                        <a name="bteliminar" id="bteliminar" href="#" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+            </tbody>
+            <!-- Total -->
+            <tfoot>
+                <tr>
+                    <th colspan="4" class="text-end">Total:</th>
+                    <th id="total">$0</th>
+                </tr>
+                <th><button id="guardarPedido" class="btn btn-success mt-3">Guardar Pedido</button></th>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<!-- Script para agregar filas dinámicamente y calcular el total -->
+<script>
+    // Función para calcular el total
+    function calcularTotal() {
+        let total = 0;
+        document.querySelectorAll('#tablaProductos tbody tr').forEach(fila => {
+            const precio = parseFloat(fila.querySelector('.precio').value) || 0;
+            const cantidad = parseFloat(fila.querySelector('.cantidad').value) || 0;
+            total += precio * cantidad;
+        });
+        document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    }
+
+    // Agregar evento al botón "Agregar Producto"
+    document.getElementById('agregarProducto').addEventListener('click', function() {
+        // Crear una nueva fila
+        const nuevaFila = document.createElement('tr');
+
+        // Campos de la fila
+        nuevaFila.innerHTML = `
+            <td><input type="text" class="form-control" placeholder="Nombre del producto"></td>
+            <td><input type="number" class="form-control precio" placeholder="Precio"></td>
+            <td><input type="number" class="form-control cantidad" placeholder="Cantidad" value="1" min="1"></td>
+            <td>
+                <select class="form-select">
+                    <option value="En preparación">En preparación</option>
+                    <option value="Listo">Listo</option>
+                </select>
+            </td>
+            <td>
+                <a href="#" class="btn btn-sm btn-warning">Editar</a>
+                <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
+            </td>
+        `;
+
+        // Agregar la fila a la tabla
+        document.querySelector('#tablaProductos tbody').appendChild(nuevaFila);
+
+        // Recalcular el total
+        calcularTotal();
+    });
+
+    // Escuchar cambios en los campos de precio y cantidad
+    document.addEventListener('input', function(event) {
+        if (event.target.classList.contains('precio') || event.target.classList.contains('cantidad')) {
+            calcularTotal();
+        }
+    });
+
+    // Calcular el total inicial
+    calcularTotal();
+</script>
+{% endblock %}
