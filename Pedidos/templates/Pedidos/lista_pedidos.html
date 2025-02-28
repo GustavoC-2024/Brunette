@@ -4,12 +4,9 @@
 <div class="card">
     <div class="card-header">
         Mesa: 
-        <select class="form-select d-inline-block w-auto ms-2">
+        <select class="form-select d-inline-block w-auto ms-2" id="selectMesa">
             {% for mesa in mesas %}
-                <!-- Usa id_mesa para el valor y num_mesa para mostrar -->
-                <option value="{{ mesa.id_mesa }}" {% if pedido.mesa.id_mesa == mesa.id_mesa %}selected{% endif %}>
-                    Mesa {{ mesa.num_mesa }}  <!-- Muestra el número correcto -->
-                </option>
+                <option value="{{ mesa.id_mesa }}">Mesa {{ mesa.num_mesa }}</option>
             {% endfor %}
         </select>
     </div>
@@ -65,14 +62,15 @@
                     <th colspan="4" class="text-end">Total:</th>
                     <th id="total">$0</th>
                 </tr>
-
             </tfoot>
         </table>
+        
+        <div class="mt-4">
+            <button id="guardarPedido" class="btn btn-success">Guardar Pedido</button>
+            <div id="mensajeExito" class="alert alert-success mt-3 d-none"></div>
+            <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
+        </div>
     </div>
-    <!-- Agrega esto al final del card-body -->
-<div class="mt-4">
-    <button id="guardarPedido" class="btn btn-success">Guardar Pedido</button>
-</div>
 </div>
 
 <style>
@@ -195,7 +193,6 @@
             </td>
             
             <td>
-                
                 <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
             </td>
         `;
@@ -222,5 +219,124 @@
 
     // Calcular total inicial
     calcularTotal();
+
+    // ========== NUEVO CÓDIGO PARA GUARDAR PEDIDO ==========
+    document.getElementById('guardarPedido').addEventListener('click', async function(e) {
+        e.preventDefault();
+        
+        const mesaId = document.getElementById('selectMesa').value;
+        const productos = [];
+        
+        // Validar que haya al menos un producto
+        const filas = document.querySelectorAll('#tablaProductos tbody tr');
+        if (filas.length === 0) {
+            mostrarMensaje('Debe agregar al menos un producto', 'error');
+            return;
+        }
+        
+        // Recoger datos de productos
+        filas.forEach(fila => {
+            const idProducto = fila.querySelector('.id-producto').value;
+            const cantidad = fila.querySelector('.cantidad').value;
+            const precio = fila.querySelector('.precio').value;
+            
+            if (idProducto && cantidad > 0) {
+                productos.push({
+                    id_producto: idProducto,
+                    cantidad: cantidad,
+                    precio: precio
+                });
+            }
+        });
+
+        try {
+            const response = await fetch('{% url "nuevo_pedido" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({
+                    mesa_id: mesaId,
+                    productos: productos,
+                    total: document.getElementById('total').textContent.replace('$', '')
+                })
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                mostrarMensaje('Pedido guardado exitosamente!', 'success');
+                limpiarFormulario();
+            } else {
+                mostrarMensaje('Error: ' + (data.error || 'Error desconocido'), 'error');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            mostrarMensaje('Error de conexión con el servidor', 'error');
+        }
+    });
+
+    function mostrarMensaje(texto, tipo) {
+        const exito = document.getElementById('mensajeExito');
+        const error = document.getElementById('mensajeError');
+        
+        exito.classList.add('d-none');
+        error.classList.add('d-none');
+        
+        if (tipo === 'success') {
+            exito.textContent = texto;
+            exito.classList.remove('d-none');
+            setTimeout(() => exito.classList.add('d-none'), 3000);
+        } else {
+            error.textContent = texto;
+            error.classList.remove('d-none');
+            setTimeout(() => error.classList.add('d-none'), 5000);
+        }
+    }
+
+    function limpiarFormulario() {
+        // Limpiar tabla de productos
+        document.querySelectorAll('#tablaProductos tbody tr').forEach(tr => tr.remove());
+        
+        // Restablecer total
+        document.getElementById('total').textContent = '$0';
+        
+        // Agregar fila inicial vacía
+        document.querySelector('#tablaProductos tbody').innerHTML = `
+            <tr>
+                <td>
+                    <div class="autocomplete-wrapper">
+                        <input type="text" 
+                               class="form-control buscar-producto" 
+                               placeholder="Buscar producto..."
+                               data-precio-id="">
+                        <div class="autocomplete-items"></div>
+                        <input type="hidden" class="id-producto" name="id_producto">
+                    </div>
+                </td>
+                <td>
+                    <input type="number" 
+                           class="form-control precio" 
+                           placeholder="Precio" 
+                           readonly
+                           value="">
+                </td>
+                <td>
+                    <input type="number" 
+                           class="form-control cantidad" 
+                           placeholder="Cantidad" 
+                           value="1" 
+                           min="1">
+                </td>
+                <td>
+                    <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
+                </td>
+            </tr>
+        `;
+        
+        // Re-inicializar autocompletado
+        setupAutocomplete(document.querySelector('.buscar-producto'));
+    }
 </script>
 {% endblock %}
