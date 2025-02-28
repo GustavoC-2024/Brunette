@@ -3,11 +3,12 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        Pedido: Id: {{ pedido.id }} &nbsp;&nbsp;&nbsp; Mesa: 
+        Mesa: 
         <select class="form-select d-inline-block w-auto ms-2">
             {% for mesa in mesas %}
-                <option value="{{ mesa.id }}" {% if mesa.id == pedido.mesa.id %}selected{% endif %}>
-                    Mesa {{ mesa.id }}
+                <!-- Usa id_mesa para el valor y num_mesa para mostrar -->
+                <option value="{{ mesa.id_mesa }}" {% if pedido.mesa.id_mesa == mesa.id_mesa %}selected{% endif %}>
+                    Mesa {{ mesa.num_mesa }}  <!-- Muestra el número correcto -->
                 </option>
             {% endfor %}
         </select>
@@ -55,7 +56,6 @@
                     </td>
                 
                     <td>
-                        <a href="#" class="btn btn-sm btn-warning">Editar</a>
                         <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
                     </td>
                 </tr>
@@ -195,7 +195,7 @@
             </td>
             
             <td>
-                <a href="#" class="btn btn-sm btn-warning">Editar</a>
+                
                 <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
             </td>
         `;
