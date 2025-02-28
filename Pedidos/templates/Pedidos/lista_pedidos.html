@@ -13,98 +13,210 @@
         </select>
     </div>
     <div class="card-body">
-        <!-- Botón para agregar producto -->
         <button id="agregarProducto" class="btn btn-primary mb-3">
             Agregar Producto
         </button>
 
-        <!-- Tabla de productos -->
         <table class="table" id="tablaProductos">
             <thead>
                 <tr>
                     <th>Productos</th>
                     <th>Precio</th>
                     <th>Cantidad</th>
-                    <th>Acciones
-                    </th>
-                  
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Fila inicial (puede estar vacía o tener datos precargados) -->
+                <!-- Fila inicial -->
                 <tr>
-                    <td><input type="text" class="form-control" placeholder="Producto" value=""></td>
-                    <td><input type="number" class="form-control precio" placeholder="Precio" value=""></td>
-                    <td><input type="number" class="form-control cantidad" placeholder="Cantidad" value="" min="1"></td>
-                  
                     <td>
-                        <a name="bteditar" id="bteditar" href="#" class="btn btn-sm btn-warning">Editar</a>
-                        <a name="bteliminar" id="bteliminar" href="#" class="btn btn-sm btn-danger">Eliminar</a>
+                        <div class="autocomplete-wrapper">
+                            <input type="text" 
+                                   class="form-control buscar-producto" 
+                                   placeholder="Buscar producto..."
+                                   data-precio-id="">
+                            <div class="autocomplete-items"></div>
+                            <input type="hidden" class="id-producto" name="id_producto">
+                        </div>
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="form-control precio" 
+                               placeholder="Precio" 
+                               readonly
+                               value="">
+                    </td>
+                    <td>
+                        <input type="number" 
+                               class="form-control cantidad" 
+                               placeholder="Cantidad" 
+                               value="1" 
+                               min="1">
+                    </td>
+                
+                    <td>
+                        <a href="#" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
                     </td>
                 </tr>
             </tbody>
-            <!-- Total -->
             <tfoot>
                 <tr>
                     <th colspan="4" class="text-end">Total:</th>
                     <th id="total">$0</th>
                 </tr>
-                <th><button id="guardarPedido" class="btn btn-success mt-3">Guardar Pedido</button></th>
+
             </tfoot>
         </table>
     </div>
 </div>
 
-<!-- Script para agregar filas dinámicamente y calcular el total -->
+<style>
+    .autocomplete-wrapper {
+        position: relative;
+        width: 100%;
+    }
+    
+    .autocomplete-items {
+        position: absolute;
+        border: 1px solid #ddd;
+        border-top: none;
+        z-index: 99;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    .autocomplete-item {
+        padding: 8px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+    }
+    
+    .autocomplete-item:hover {
+        background-color: #f8f9fa;
+    }
+    
+    .autocomplete-item strong {
+        color: #0d6efd;
+    }
+</style>
+
 <script>
+    // Función de autocompletado
+    function setupAutocomplete(inputElement) {
+        const wrapper = inputElement.closest('.autocomplete-wrapper');
+        const resultsContainer = wrapper.querySelector('.autocomplete-items');
+        const precioInput = inputElement.closest('tr').querySelector('.precio');
+        const idProductoInput = wrapper.querySelector('.id-producto');
+
+        inputElement.addEventListener('input', async function(e) {
+            const term = e.target.value;
+            resultsContainer.innerHTML = '';
+
+            if (term.length < 2) return;
+
+            try {
+                const response = await fetch(`/productos/buscar/?term=${encodeURIComponent(term)}`);
+                const productos = await response.json();
+                
+                productos.forEach(producto => {
+                    const item = document.createElement('div');
+                    item.className = 'autocomplete-item';
+                    item.innerHTML = `
+                        <strong>${producto.nombre}</strong> - $${producto.precio.toFixed(2)}
+                    `;
+                    
+                    item.addEventListener('click', () => {
+                        inputElement.value = producto.nombre;
+                        precioInput.value = producto.precio;
+                        idProductoInput.value = producto.id;
+                        resultsContainer.innerHTML = '';
+                    });
+                    
+                    resultsContainer.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Error fetching productos:', error);
+            }
+        });
+    }
+
     // Función para calcular el total
     function calcularTotal() {
         let total = 0;
         document.querySelectorAll('#tablaProductos tbody tr').forEach(fila => {
             const precio = parseFloat(fila.querySelector('.precio').value) || 0;
-            const cantidad = parseFloat(fila.querySelector('.cantidad').value) || 0;
+            const cantidad = parseInt(fila.querySelector('.cantidad').value) || 0;
             total += precio * cantidad;
         });
         document.getElementById('total').textContent = `$${total.toFixed(2)}`;
     }
 
-    // Agregar evento al botón "Agregar Producto"
-    document.getElementById('agregarProducto').addEventListener('click', function() {
-        // Crear una nueva fila
-        const nuevaFila = document.createElement('tr');
+    // Configuración inicial para filas existentes
+    document.querySelectorAll('.buscar-producto').forEach(input => {
+        setupAutocomplete(input);
+    });
 
-        // Campos de la fila
+    // Evento para agregar nuevas filas
+    document.getElementById('agregarProducto').addEventListener('click', function() {
+        const nuevaFila = document.createElement('tr');
         nuevaFila.innerHTML = `
-            <td><input type="text" class="form-control" placeholder="Nombre del producto"></td>
-            <td><input type="number" class="form-control precio" placeholder="Precio"></td>
-            <td><input type="number" class="form-control cantidad" placeholder="Cantidad" value="1" min="1"></td>
             <td>
-                <select class="form-select">
-                    <option value="En preparación">En preparación</option>
-                    <option value="Listo">Listo</option>
-                </select>
+                <div class="autocomplete-wrapper">
+                    <input type="text" 
+                           class="form-control buscar-producto" 
+                           placeholder="Buscar producto..."
+                           data-precio-id="">
+                    <div class="autocomplete-items"></div>
+                    <input type="hidden" class="id-producto" name="id_producto">
+                </div>
             </td>
+            <td>
+                <input type="number" 
+                       class="form-control precio" 
+                       placeholder="Precio" 
+                       readonly
+                       value="">
+            </td>
+            <td>
+                <input type="number" 
+                       class="form-control cantidad" 
+                       placeholder="Cantidad" 
+                       value="1" 
+                       min="1">
+            </td>
+            
             <td>
                 <a href="#" class="btn btn-sm btn-warning">Editar</a>
                 <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
             </td>
         `;
 
-        // Agregar la fila a la tabla
         document.querySelector('#tablaProductos tbody').appendChild(nuevaFila);
-
-        // Recalcular el total
+        setupAutocomplete(nuevaFila.querySelector('.buscar-producto'));
         calcularTotal();
     });
 
-    // Escuchar cambios en los campos de precio y cantidad
-    document.addEventListener('input', function(event) {
-        if (event.target.classList.contains('precio') || event.target.classList.contains('cantidad')) {
+    // Eventos para cambios en precios y cantidades
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('precio') || e.target.classList.contains('cantidad')) {
             calcularTotal();
         }
     });
 
-    // Calcular el total inicial
+    // Evento para eliminar filas
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-danger')) {
+            e.target.closest('tr').remove();
+            calcularTotal();
+        }
+    });
+
+    // Calcular total inicial
     calcularTotal();
 </script>
 {% endblock %}

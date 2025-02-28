@@ -3,15 +3,14 @@ from .models import Pedidos
 from .models import Productos
 
 def lista_pedidos(request):
-    estado = request.GET.get('estado', 'todos')  # Captura el filtro de estado desde la URL
-    if estado == 'todos':
-        pedidos = Pedidos.objects.all()
-    else:
-        pedidos = Pedidos.objects.filter(
-            **{estado + '_ped': 1}  # Filtra según el estado seleccionado
-        )
-
-    return render(request, 'pedidos/lista_pedidos.html', {'pedidos': pedidos, 'estado': estado})
+    estado = request.GET.get('estado', 'todos')
+    pedidos = Pedidos.objects.all() if estado == 'todos' else Pedidos.objects.filter(**{f'{estado}_ped': 1})
+    productos = Productos.objects.all()  # <-- Añade esta línea
+    return render(request, 'pedidos/lista_pedidos.html', {
+        'pedidos': pedidos,
+        'estado': estado,
+        'productos': productos  # <-- Pasa los productos al template
+    })
 
 def lista(request):
     Productos= Productos.objects.all()
