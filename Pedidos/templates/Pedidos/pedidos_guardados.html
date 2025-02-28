@@ -3,50 +3,45 @@
 {% block content %}
 <div class="card">
     <div class="card-header">
-        <h4>Pedidos Guardados</h4>
+        <h3>Lista de Pedidos Guardados</h3>
     </div>
     <div class="card-body">
-        <table class="table table-hover">
-            <thead class="table-dark">
+        <table class="table">
+            <thead>
                 <tr>
                     <th>ID Pedido</th>
                     <th>Mesa</th>
-                    <th>Estado</th>
-                    <th>Total</th>
-                    <th>Acciones</th>
+                    <th>Fecha</th>
+                    <th>Hora</th>
+                    
                 </tr>
             </thead>
             <tbody>
                 {% for pedido in pedidos %}
                 <tr>
                     <td>{{ pedido.id_pedido }}</td>
-                    <td>{{ pedido.id_mesa }}</td>
-                    <td>
-                        {% if pedido.entregado_ped %}
-                            <span class="badge bg-success">Entregado</span>
-                        {% elif pedido.listo_ped %}
-                            <span class="badge bg-warning text-dark">Listo</span>
-                        {% else %}
-                            <span class="badge bg-primary">En preparación</span>
-                        {% endif %}
+                    <td>{{ pedido.id_mesa.num_mesa }}</td>
+                    <td>{{ pedido.fecha_gen_ped }}</td>
+                    <td>{{ pedido.hora_gen_ped }}</td>
+                    
+                    <td class="text-end">
+                        <a href="#" class="btn btn-success btn-sm">Confirmar Pedido</a>
+                        <a href="#" class="btn btn-warning btn-sm">Modificar Pedido</a>
+                        <a href="#" class="btn btn-danger btn-sm">Cancelar Pedido</a>
                     </td>
-                    <td>${{ pedido.detalleped_set.first.total_ped|default:"0.00" }}</td>
-                    <td>
-                        {% if not pedido.entregado_ped %}
-                        <a href="{% url 'confirmar_pedido' pedido.id_pedido %}" class="btn btn-sm btn-success">
-                            Confirmar
-                        </a>
-                        <a href="{% url 'cancelar_pedido' pedido.id_pedido %}" class="btn btn-sm btn-danger">
-                            Cancelar
-                        </a>
-                        {% endif %}
-                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6">No hay pedidos guardados</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
+
+        <!-- Botón para regresar a la pantalla de Pedidos -->
+        <div class="mt-4">
+            <a href="{% url 'lista_pedidos' %}" class="btn btn-secondary">Regresar a Pedidos</a>
+        </div>
     </div>
 </div>
 {% endblock %}
-
-<!-- Esto es un comentario -->

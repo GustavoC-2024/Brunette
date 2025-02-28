@@ -51,7 +51,6 @@
                                value="1" 
                                min="1">
                     </td>
-                
                     <td>
                         <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
                     </td>
@@ -65,11 +64,14 @@
             </tfoot>
         </table>
         
-        <div class="mt-4">
+        <!-- Botones: Guardar Pedido y Ver lista de Pedidos -->
+        <div class="mt-4 d-flex justify-content-end">
             <button id="guardarPedido" class="btn btn-success">Guardar Pedido</button>
-            <div id="mensajeExito" class="alert alert-success mt-3 d-none"></div>
-            <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
+            <a href="{% url 'pedidos_guardados' %}" class="btn btn-primary ms-2">Ver lista de Pedidos</a>
         </div>
+        
+        <div id="mensajeExito" class="alert alert-success mt-3 d-none"></div>
+        <div id="mensajeError" class="alert alert-danger mt-3 d-none"></div>
     </div>
 </div>
 
@@ -191,7 +193,6 @@
                        value="1" 
                        min="1">
             </td>
-            
             <td>
                 <a href="#" class="btn btn-sm btn-danger">Eliminar</a>
             </td>
@@ -340,3 +341,7 @@
     }
 </script>
 {% endblock %}
+
+
+               
+
